@@ -11,7 +11,7 @@ Email: Jens@Aristotle.ventures
 
 from .selectors import Selectors, extract
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __author__ = "Jens Verneuer"
 __email__ = "Jens@Aristotle.ventures"
 
