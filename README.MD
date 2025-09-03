@@ -1,175 +1,188 @@
-# Unified Selectors for Web Scraping
+# WebExtractionHelper
 
-This module provides a comprehensive and unified collection of selectors for extracting various elements from web pages. It includes methods for XPath, regex, and CSS selectors, with a focus on Google search features and general web scraping.
+A comprehensive Python package providing XPath selectors, regex patterns, and CSS selectors for web scraping various web content including Google search features, featured snippets, related questions, and other SERP elements.
 
-## Key Features
+## 🚀 Features
 
-- **Unified Structure**: Each selector is an object that can contain multiple extraction methods (`xpath`, `regex`, `css`).
-- **Namespaced Selectors**: Clear and organized naming conventions (e.g., `google.*`, `og.*`, `x.*`).
-- **Dynamic Parameters**: Support for parameterized selectors for flexible and reusable extraction logic.
-- **Comprehensive Coverage**: Extensive library of selectors for Google SERPs, meta tags, content elements, and more.
-- **Easy-to-Use API**: Simple convenience functions for quick access to selectors and extraction methods.
+- **95+ Pre-built Selectors**: Comprehensive collection of XPath selectors for web scraping
+- **Google Search Support**: Specialized selectors for Google SERP features
+- **Multiple Content Types**: Support for featured snippets, related questions, images, links, and more
+- **Easy to Use**: Simple API with clear explanations for each selector
+- **Well Documented**: Each selector includes detailed explanations and usage examples
 
-## Installation
+## 📦 Installation
 
-This module requires `lxml` for XPath processing.
-
+### From PyPI (Recommended)
 ```bash
-pip install lxml
+pip install webextractionhelper
 ```
 
-## Basic Usage
-
-### Import the Module
-
-```python
-from src.helpers.selectors import get_selector, get_explanation, extract
+### From Source
+```bash
+git clone https://github.com/Artistotle-ai/webextractionhelper.git
+cd webextractionhelper
+pip install -e .
 ```
 
-### Extracting Data
+## 🔧 Requirements
 
-The primary function `extract` allows you to specify the selector name, the HTML content, and the extraction method.
+- Python 3.7+
+- lxml >= 4.6.0
 
-```python
-# Extract all H1 headings using XPath (default method)
-h1_headings = extract('headings.h1', html_string)
-
-# Extract Google Analytics ID using regex
-ga_id = extract('analytics.google_analytics_id', html_string, method='regex')
-
-# Extract Open Graph title using XPath
-og_title = extract('og.title', html_string, method='xpath')
-```
-
-### Dynamic Selectors with Parameters
-
-Use keyword arguments to pass parameters to dynamic selectors.
+## 📚 Quick Start
 
 ```python
-# Extract all links to a specific domain
-domain_links = extract('links.to_domain', html_string, domain='example.com')
+from webextractionhelper import Selectors
 
-# Extract all elements with a specific class
-elements = extract('generic.elements_by_class', html_string, class_name='product-card')
-```
-
-### Getting Selector Information
-
-You can also retrieve the raw selector pattern and its explanation.
-
-```python
-# Get the XPath for Open Graph titles
-og_title_xpath = get_selector('og.title', method='xpath')
-
-# Get the regex for Google Analytics IDs
-ga_id_regex = get_selector('analytics.google_analytics_id', method='regex')
-
-# Get the explanation for a selector
-explanation = get_explanation('og.title')
-```
-
-## Complete Selector Reference
-
-The following table provides a comprehensive list of all available selectors, their extraction methods, and their sources.
-
-| Selector Name | Methods | Description | Source |
-|---|---|---|---|
-| **Google Search Features** |
-| `google.featured_snippet_title` | `xpath` | Featured snippet page title | [screamingfrog](https://www.screamingfrog.co.uk/blog/how-to-scrape-google-search-features-using-xpath/) |
-| `google.featured_snippet_text` | `xpath` | Featured snippet description text | [screamingfrog](https://www.screamingfrog.co.uk/blog/how-to-scrape-google-search-features-using-xpath/) |
-| `google.related_questions_all` | `xpath` | All "People also ask" questions | [screamingfrog](https://www.screamingfrog.co.uk/blog/how-to-scrape-google-search-features-using-xpath/) |
-| `google.search_result_links` | `xpath` | Search result links | [screamingfrog](https://www.screamingfrog.co.uk/blog/how-to-scrape-google-search-features-using-xpath/) |
-| **Meta Tags** |
-| `meta.title` | `xpath` | Page title from title tag | [screamingfrog](https://www.screamingfrog.co.uk/seo-spider/tutorials/web-scraping/) |
-| `meta.description` | `xpath` | Meta description content | [screamingfrog](https://www.screamingfrog.co.uk/seo-spider/tutorials/web-scraping/) |
-| **Open Graph (og:)** |
-| `og.title` | `xpath` | Open Graph title | [screamingfrog](https://www.screamingfrog.co.uk/seo-spider/tutorials/web-scraping/) |
-| `og.description` | `xpath` | Open Graph description | [screamingfrog](https://www.screamingfrog.co.uk/seo-spider/tutorials/web-scraping/) |
-| `og.image` | `xpath` | Open Graph image URL | [screamingfrog](https://www.screamingfrog.co.uk/seo-spider/tutorials/web-scraping/) |
-| **Twitter/X Cards** |
-| `x.title` | `xpath` | Twitter title | [screamingfrog](https://www.screamingfrog.co.uk/seo-spider/tutorials/web-scraping/) |
-| `x.description` | `xpath` | Twitter description | [screamingfrog](https://www.screamingfrog.co.uk/seo-spider/tutorials/web-scraping/) |
-| **Structured Data** |
-| `structured_data.json_ld` | `xpath`, `regex` | JSON-LD structured data scripts | [screamingfrog](https://www.screamingfrog.co.uk/seo-spider/tutorials/web-scraping/) |
-| `structured_data.microdata` | `xpath` | Microdata structured data elements | [screamingfrog](https://www.screamingfrog.co.uk/seo-spider/tutorials/web-scraping/) |
-| `structured_data.product` | `regex` | Product name from JSON-LD | [screamingfrog](https://www.screamingfrog.co.uk/seo-spider/tutorials/web-scraping/) |
-| **Analytics and Tracking** |
-| `analytics.google_analytics_id` | `xpath`, `regex` | Google Analytics UA tracking ID | [screamingfrog](https://www.screamingfrog.co.uk/seo-spider/tutorials/web-scraping/) |
-| `analytics.google_tag_manager_id` | `xpath`, `regex` | Google Tag Manager GTM ID | [screamingfrog](https://www.screamingfrog.co.uk/seo-spider/tutorials/web-scraping/) |
-| `analytics.google_analytics_ga4` | `regex` | Google Analytics 4 measurement ID | [screamingfrog](https://www.screamingfrog.co.uk/seo-spider/tutorials/web-scraping/) |
-| **General Content** |
-| `headings.all` | `xpath` | All heading elements | [screamingfrog](https://www.screamingfrog.co.uk/seo-spider/tutorials/web-scraping/) |
-| `headings.h1` | `xpath` | H1 headings | [screamingfrog](https://www.screamingfrog.co.uk/seo-spider/tutorials/web-scraping/) |
-| `images.all` | `xpath` | All images | [screamingfrog](https://www.screamingfrog.co.uk/seo-spider/tutorials/web-scraping/) |
-| **Dynamic/Parameterized Selectors** |
-| `links.to_domain` | `xpath` | Links to specific domain (`domain` parameter) | [screamingfrog](https://www.screamingfrog.co.uk/seo-spider/tutorials/web-scraping/) |
-| `generic.elements_by_class` | `xpath` | Elements with specific class (`class_name` parameter) | [screamingfrog](https://www.screamingfrog.co.uk/seo-spider/tutorials/web-scraping/) |
-| `generic.elements_by_attribute` | `xpath` | Elements by attribute (`attribute_name`, `attribute_value`) | [screamingfrog](https://www.screamingfrog.co.uk/seo-spider/tutorials/web-scraping/) |
-
-## Full Usage Example
-
-```python
-import re
-from src.helpers.selectors import extract
-
-# Sample HTML content
-html_string = """
-<html>
-  <head>
-    <title>My Awesome Page</title>
-    <meta property="og:title" content="Open Graph Title" />
-    <script>
-      var gaId = 'UA-123456-7';
-    </script>
-  </head>
-  <body>
-    <h1>Main Heading</h1>
-    <a href="https://example.com/page1">Link 1</a>
-    <div class="product-card">Product A</div>
-  </body>
-</html>
-"""
-
-# Extract data using various selectors and methods
-page_title = extract('meta.title', html_string, method='xpath')
-og_title = extract('og.title', html_string, method='xpath')
-ga_id = extract('analytics.google_analytics_id', html_string, method='regex')
-links = extract('links.to_domain', html_string, domain='example.com')
-product_cards = extract('generic.elements_by_class', html_string, class_name='product-card')
-
-print(f"Page Title: {page_title}")
-print(f"Open Graph Title: {og_title}")
-print(f"Google Analytics ID: {ga_id}")
-print(f"Links to example.com: {links}")
-print(f"Product Cards: {product_cards}")
-```
-
-## Advanced Usage
-
-For more advanced use cases, you can create your own instance of the `Selectors` class.
-
-```python
-from src.helpers.selectors import Selectors
-
-# Create an instance
+# Create a Selectors instance
 selectors = Selectors()
 
-# Get all available selectors
-all_selectors = selectors.get_all_selectors()
+# Access Google featured snippet selectors
+featured_title_xpath = selectors.selectors['google.featured_snippet_title']['xpath']
+featured_text_xpath = selectors.selectors['google.featured_snippet_text']['xpath']
 
-# Iterate and apply selectors
-for name, data in all_selectors.items():
-    if 'xpath' in data:
-        print(f"Extracting {name} with XPath...")
-        results = selectors.extract(name, html_string, method='xpath')
-        print(results)
+# Access related questions selectors
+related_questions_xpath = selectors.selectors['google.related_questions_all']['xpath']
+
+print(f"Featured snippet title XPath: {featured_title_xpath}")
+print(f"Featured snippet text XPath: {featured_text_xpath}")
+print(f"Related questions XPath: {related_questions_xpath}")
 ```
 
-## Sources
+## 🎯 Available Selector Categories
 
-- [How to Scrape Google Search Features Using XPath](https://www.screamingfrog.co.uk/blog/how-to-scrape-google-search-features-using-xpath/)
-- [Web Scraping & Custom Extraction Tutorial](https://www.screamingfrog.co.uk/seo-spider/tutorials/web-scraping/)
+### Google Search Selectors (21 selectors)
+- **Featured Snippets**: Title, text, bullet points, numbered lists, tables, URLs, images
+- **Related Questions**: Individual questions, all questions, answer snippets, source titles/URLs
+- **Search Results**: Main containers, links, titles, descriptions
 
-## License
+### Meta & Open Graph Selectors (11 selectors)
+- **Meta Tags**: Title, description, keywords, robots, viewport
+- **Open Graph**: Title, description, image, URL, type, site name
 
-This module is provided for educational and development purposes. Please respect the original sources and website Terms of Service.
+### Social Media Selectors (6 selectors)
+- **Twitter/X**: Card type, title, description, image, creator, site
+
+### Content Selectors (10 selectors)
+- **Headings**: H1, H2, H3, H4
+- **Text Content**: Paragraphs, lists, blockquotes
+- **Forms**: Input fields, buttons, labels
+
+### Media Selectors (5 selectors)
+- **Images**: Source, alt text, title, dimensions
+- **Videos**: Source, poster, dimensions
+
+### Link Selectors (7 selectors)
+- **Navigation**: Main nav, footer links, breadcrumbs
+- **Content Links**: Internal, external, download links
+
+## 🔍 Usage Examples
+
+### Example 1: Extract Google Featured Snippet
+```python
+from webextractionhelper import Selectors
+import requests
+from lxml import html
+
+selectors = Selectors()
+
+# Get the page content
+url = "https://www.google.com/search?q=python+programming"
+response = requests.get(url)
+tree = html.fromstring(response.content)
+
+# Extract featured snippet title
+title_xpath = selectors.selectors['google.featured_snippet_title']['xpath']
+title_elements = tree.xpath(title_xpath)
+
+if title_elements:
+    title = title_elements[0].text_content()
+    print(f"Featured snippet title: {title}")
+```
+
+### Example 2: Extract All Related Questions
+```python
+# Get all related questions
+questions_xpath = selectors.selectors['google.related_questions_all']['xpath']
+question_elements = tree.xpath(questions_xpath)
+
+for i, question in enumerate(question_elements, 1):
+    print(f"Question {i}: {question.text_content()}")
+```
+
+### Example 3: Extract Meta Information
+```python
+# Get page meta description
+meta_desc_xpath = selectors.selectors['meta.description']['xpath']
+meta_desc_elements = tree.xpath(meta_desc_xpath)
+
+if meta_desc_elements:
+    description = meta_desc_elements[0].get('content')
+    print(f"Meta description: {description}")
+```
+
+## 📋 Selector Structure
+
+Each selector in the package follows this structure:
+
+```python
+{
+    'explanation': 'Human-readable description of what this selector extracts',
+    'xpath': 'The XPath expression to extract the content',
+    'regex': 'Optional regex pattern for text processing',
+    'css': 'Optional CSS selector alternative'
+}
+```
+
+## 🛠️ Development
+
+### Setting up development environment
+```bash
+git clone https://github.com/Artistotle-ai/webextractionhelper.git
+cd webextractionhelper
+pip install -e ".[dev]"
+```
+
+### Running tests
+```bash
+python test_package.py
+python example_usage.py
+```
+
+### Building the package
+```bash
+python -m build
+```
+
+## 📄 License
+
+This project is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License - see the [LICENSE.txt](LICENSE.txt) file for details.
+
+## 👨‍💻 Author
+
+**Jens Verneuer** - [Jens@Aristotle.ventures](mailto:Jens@Aristotle.ventures)
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+
+## 📞 Support
+
+If you have any questions or need help, please:
+1. Check the [GitHub Issues](https://github.com/Artistotle-ai/webextractionhelper/issues)
+2. Create a new issue if your problem isn't already addressed
+3. Contact the author at [Jens@Aristotle.ventures](mailto:Jens@Aristotle.ventures)
+
+## 🔗 Links
+
+- **GitHub Repository**: [https://github.com/Artistotle-ai/webextractionhelper](https://github.com/Artistotle-ai/webextractionhelper)
+- **PyPI Package**: [https://pypi.org/project/webextractionhelper/](https://pypi.org/project/webextractionhelper/)
+- **Documentation**: [https://github.com/Artistotle-ai/webextractionhelper#readme](https://github.com/Artistotle-ai/webextractionhelper#readme)
+
+## 📈 Version History
+
+- **0.1.0** - Initial release with 95+ selectors for web scraping
+
+---
+
+**Note**: This package is designed to help with web scraping tasks. Please ensure you comply with the terms of service of the websites you're scraping and respect robots.txt files.
