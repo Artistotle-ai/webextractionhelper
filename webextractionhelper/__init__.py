@@ -9,10 +9,10 @@ Author: Jens Verneuer
 Email: Jens@Aristotle.ventures
 """
 
-from .selectors import Selectors
+from .selectors import Selectors, extract
 
 __version__ = "0.1.0"
 __author__ = "Jens Verneuer"
 __email__ = "Jens@Aristotle.ventures"
 
-__all__ = ["Selectors"]
+__all__ = ["Selectors", "extract"]

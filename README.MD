@@ -160,7 +160,7 @@ This project is licensed under the Creative Commons Attribution-ShareAlike 4.0 I
 
 ## 👨‍💻 Author
 
-**Jens Verneuer** - [Jens@Aristotle.ventures](mailto:Jens@Aristotle.ventures)
+**Jens Verneuer**
 
 ## 🤝 Contributing
 
@@ -171,7 +171,6 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 If you have any questions or need help, please:
 1. Check the [GitHub Issues](https://github.com/Artistotle-ai/webextractionhelper/issues)
 2. Create a new issue if your problem isn't already addressed
-3. Contact the author at [Jens@Aristotle.ventures](mailto:Jens@Aristotle.ventures)
 
 ## 🔗 Links
 

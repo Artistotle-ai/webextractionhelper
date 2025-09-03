@@ -7,7 +7,7 @@ including featured snippets, related questions, and other SERP elements.
 """
 
 from typing import Dict, Any, List, Optional
-from lxml import html
+from lxml import html, etree
 import re
 
 class Selectors:
@@ -207,20 +207,28 @@ class Selectors:
 
             # Links and Navigation
             'links.all': {
-                'explanation': 'All links with href attributes',
-                'xpath': '//a[@href]'
+                'explanation': 'All links - returns href attributes',
+                'xpath': '//a[@href]',
+                'extract': 'attribute',
+                'attribute': 'href'
             },
             'links.external': {
-                'explanation': 'External links (not from same domain)',
-                'xpath': '//a[not(contains(@href, "//" + substring-after(//meta[@property="og:url"]/@content, "://"))]'
+                'explanation': 'External links (not from same domain) - returns href attributes',
+                'xpath': '//a[not(contains(@href, "//" + substring-after(//meta[@property="og:url"]/@content, "://")))]',
+                'extract': 'attribute',
+                'attribute': 'href'
             },
             'links.internal': {
-                'explanation': 'Internal links (same domain)',
-                'xpath': '//a[contains(@href, "//" + substring-after(//meta[@property="og:url"]/@content, "://"))]'
+                'explanation': 'Internal links (same domain) - returns href attributes',
+                'xpath': '//a[contains(@href, "//" + substring-after(//meta[@property="og:url"]/@content, "://"))]',
+                'extract': 'attribute',
+                'attribute': 'href'
             },
             'links.images': {
-                'explanation': 'Links containing images',
-                'xpath': '//a[img]'
+                'explanation': 'Links containing images - returns href attributes',
+                'xpath': '//a[img]',
+                'extract': 'attribute',
+                'attribute': 'href'
             },
             'links.containing_text': {
                 'explanation': 'Links containing specific text (case sensitive) - requires text_content parameter',
@@ -230,23 +238,26 @@ class Selectors:
                 'explanation': 'Links containing specific text (case insensitive) - requires text_content parameter',
                 'xpath': '//a[contains(translate(., "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"), "{text_content}")]/@href'
             },
-            'links.to_domain': {
-                'explanation': 'Links to specific domain - requires domain parameter',
-                'xpath': '//a[contains(@href, "{domain}")]'
-            },
+
 
             # Images
             'images.all': {
-                'explanation': 'All images',
-                'xpath': '//img'
+                'explanation': 'All images - returns src URLs',
+                'xpath': '//img',
+                'extract': 'attribute',
+                'attribute': 'src'
             },
             'images.with_alt': {
-                'explanation': 'Images with alt text',
-                'xpath': '//img[@alt]'
+                'explanation': 'Images with alt text - returns src URLs',
+                'xpath': '//img[@alt]',
+                'extract': 'attribute',
+                'attribute': 'src'
             },
             'images.without_alt': {
-                'explanation': 'Images without alt text',
-                'xpath': '//img[not(@alt)]'
+                'explanation': 'Images without alt text - returns src URLs',
+                'xpath': '//img[not(@alt)]',
+                'extract': 'attribute',
+                'attribute': 'src'
             },
             'images.src': {
                 'explanation': 'Image source URLs',
@@ -278,15 +289,18 @@ class Selectors:
             # Content
             'content.paragraphs': {
                 'explanation': 'All paragraph elements',
-                'xpath': '//p'
+                'xpath': '//p',
+                'extract': 'text'
             },
             'content.lists': {
-                'explanation': 'All list elements (ordered and unordered)',
-                'xpath': '//ul | //ol'
+                'explanation': 'All list elements (ordered and unordered) - extracts list items',
+                'xpath': '//ul | //ol',
+                'extract': 'list_items'
             },
             'content.list_items': {
                 'explanation': 'All list item elements',
-                'xpath': '//li'
+                'xpath': '//li',
+                'extract': 'text'
             },
             'content.tables': {
                 'explanation': 'All table elements',
@@ -302,21 +316,17 @@ class Selectors:
             },
 
             # Forms
-            'forms.all': {
-                'explanation': 'All form elements',
-                'xpath': '//form'
-            },
             'forms.inputs': {
-                'explanation': 'All input elements',
-                'xpath': '//input'
+                'explanation': 'All input elements - returns placeholder/value/name',
+                'xpath': '//input',
+                'extract': 'attribute',
+                'attribute': 'placeholder'  # Will fallback to value, then name, then type
             },
             'forms.text_inputs': {
-                'explanation': 'Text input elements',
-                'xpath': '//input[@type="text"]'
-            },
-            'forms.submit_buttons': {
-                'explanation': 'Submit buttons',
-                'xpath': '//input[@type="submit"] | //button[@type="submit"]'
+                'explanation': 'Text input elements - returns placeholder/value',
+                'xpath': '//input[@type="text"]',
+                'extract': 'attribute',
+                'attribute': 'placeholder'  # Will fallback to value, then name
             },
 
             # Media
@@ -503,19 +513,57 @@ class Selectors:
             if method == 'xpath':
                 tree = html.fromstring(html_string)
                 elements = tree.xpath(pattern)
-                
+
                 results = []
                 for element in elements:
-                    if hasattr(element, 'text') and element.text:
-                        results.append(element.text.strip())
-                    elif isinstance(element, str):
+                    # Handle string results (attributes, attribute values, etc.)
+                    if isinstance(element, str):
                         results.append(element.strip())
+                    # Handle lxml elements
+                    elif hasattr(element, 'tag'):
+                        # Check if selector specifies what to extract
+                        selector_config = self.selectors.get(selector_name, {})
+                        extract_type = selector_config.get('extract', 'text')
+
+                        if extract_type == 'text':
+                            extracted_value = self._extract_text_content(element)
+                        elif extract_type == 'attribute':
+                            attr_name = selector_config.get('attribute')
+                            if attr_name:
+                                # Try the specified attribute first
+                                extracted_value = element.get(attr_name)
+                                if not extracted_value:
+                                    # Try fallback attributes based on selector
+                                    if selector_name.startswith('forms.inputs') or selector_name.startswith('forms.text_inputs'):
+                                        for fallback_attr in ['value', 'name', 'type']:
+                                            if fallback_attr != attr_name:
+                                                extracted_value = element.get(fallback_attr)
+                                                if extracted_value:
+                                                    break
+                                    elif selector_name.startswith('images.'):
+                                        # For images, fallback to alt if src is empty
+                                        if attr_name == 'src':
+                                            extracted_value = element.get('alt')
+                            else:
+                                # No specific attribute specified, try common ones
+                                for attr in ['src', 'href', 'alt', 'value', 'content']:
+                                    extracted_value = element.get(attr)
+                                    if extracted_value:
+                                        break
+                        elif extract_type == 'html':
+                            extracted_value = etree.tostring(element, encoding='unicode')
+                        elif extract_type == 'list_items':
+                            extracted_value = self._extract_list_items(element)
+                        else:
+                            # Fallback to text content
+                            extracted_value = self._extract_text_content(element)
+
+                        if extracted_value:
+                            results.append(extracted_value.strip() if isinstance(extracted_value, str) else str(extracted_value))
+                    # Handle other types
                     else:
-                        text = ''.join(element.itertext()).strip()
-                        if text:
-                            results.append(text)
+                        results.append(str(element).strip())
                 return results
-            
             elif method == 'regex':
                 return re.findall(pattern, html_string, re.DOTALL)
             
@@ -531,6 +579,136 @@ class Selectors:
             print(f"Error applying selector {selector_name} with method {method}: {e}")
             return []
     
+    def _extract_element_value(self, element, selector_name: str) -> Optional[str]:
+        """
+        Extract the most relevant value from an HTML element based on its type and the selector.
+
+        Args:
+            element: lxml element object
+            selector_name: Name of the selector being used
+
+        Returns:
+            Extracted string value or None
+        """
+        # Handle different element types
+        if element.tag == 'img':
+            return self._extract_image_value(element, selector_name)
+        elif element.tag in ['input', 'textarea', 'select']:
+            return self._extract_form_value(element, selector_name)
+        elif element.tag in ['ul', 'ol']:
+            return self._extract_list_value(element, selector_name)
+        elif element.tag == 'a':
+            return self._extract_link_value(element, selector_name)
+        else:
+            return self._extract_generic_value(element)
+
+    def _extract_image_value(self, element, selector_name: str) -> Optional[str]:
+        """Extract value from img element."""
+        if 'src' in selector_name:
+            return element.get('src')
+        elif 'alt' in selector_name:
+            return element.get('alt')
+        else:
+            # For general image selectors, return src if available, otherwise alt
+            src = element.get('src')
+            if src:
+                return src
+            return element.get('alt')
+
+    def _extract_form_value(self, element, selector_name: str) -> Optional[str]:
+        """Extract value from form elements."""
+        # Priority: value > placeholder > name > type
+        value = element.get('value')
+        if value:
+            return value
+
+        placeholder = element.get('placeholder')
+        if placeholder:
+            return placeholder
+
+        name = element.get('name')
+        if name:
+            return name
+
+        input_type = element.get('type')
+        if input_type:
+            return input_type
+
+        return None
+
+    def _extract_list_value(self, element, selector_name: str) -> Optional[str]:
+        """Extract text content from list elements (ul, ol)."""
+        # Get all list items and join their text
+        list_items = element.xpath('.//li')
+        if list_items:
+            texts = []
+            for li in list_items:
+                text = ''.join(li.itertext()).strip()
+                if text:
+                    texts.append(text)
+            return ' | '.join(texts)
+
+        # Fallback to all text content
+        text = ''.join(element.itertext()).strip()
+        return text if text else None
+
+    def _extract_link_value(self, element, selector_name: str) -> Optional[str]:
+        """Extract value from anchor elements."""
+        if 'href' in selector_name or 'url' in selector_name:
+            return element.get('href')
+        elif 'links.' in selector_name:
+            # For link selectors, return href attribute
+            return element.get('href')
+        else:
+            # For general link selectors, return text content
+            text = ''.join(element.itertext()).strip()
+            return text if text else element.get('href')
+
+    def _extract_generic_value(self, element) -> Optional[str]:
+        """Extract value from generic elements."""
+        # First try direct text content
+        if hasattr(element, 'text') and element.text:
+            return element.text.strip()
+
+        # Then try all text content from children
+        text = ''.join(element.itertext()).strip()
+        if text:
+            return text
+
+        # Finally try to get a meaningful attribute
+        for attr in ['value', 'content', 'title', 'alt', 'src', 'href']:
+            value = element.get(attr)
+            if value:
+                return value
+
+        return None
+
+    def _extract_text_content(self, element) -> Optional[str]:
+        """Extract text content from an element."""
+        # First try direct text content
+        if hasattr(element, 'text') and element.text:
+            return element.text.strip()
+
+        # Then try all text content from children
+        text = ''.join(element.itertext()).strip()
+        return text if text else None
+
+    def _extract_list_items(self, element) -> Optional[str]:
+        """Extract text content from list elements (ul, ol)."""
+        # Get all list items and join their text
+        list_items = element.xpath('.//li')
+        if list_items:
+            texts = []
+            for li in list_items:
+                text = ''.join(li.itertext()).strip()
+                if text:
+                    texts.append(text)
+            return ' | '.join(texts)
+
+        # Fallback to all text content
+        text = ''.join(element.itertext()).strip()
+        return text if text else None
+
     def _process_dynamic_pattern(self, pattern: str, **kwargs) -> str:
         """
         Replace placeholders in a pattern with actual values from kwargs.
